@@ -1,13 +1,27 @@
 #Organizing my personal information with a simple list function
 #The 'list()' function allows you to organize variables and values of different types
-my_info <- list(
-    Name = "Kelvin Senyo Tanson",
-    Slack_username = "Ktanson",
-    Email = "kelvins.tanson@gmail.com",
-    Hobby = "Graphic Design", 
-    Country = "Ghana",
-    Discipline = "Medical biochemistry and Molecular Biology",
-    Preferred_programming_language = "R"
-    )
-#The `print()` function is used to display the organized information in a readable format.
-print(my_info)
+#Information was further organized in the list with vectors
+personal_info <- list(
+  Names = c("Tanson", "Alvin", "Bilal", "Teodora", "Natt"),
+  Slack_usernames = c("K.tanson", "Alvin", "bilal ashraf", "Teodora", "Natt"),
+  Emails = c( "kelvins.tanson@gmail.com", "teodoradespotovski@gmail.com", "alvinobande123@gmail.com", "eclecticbilalashraf@gmail.com", "im.nathn@gmail.com"),
+  Hobbies = c("Graphic Design", "Cooking", "Music", "Mixed Martial Arts", "Read manga"),
+  Countries = c("Ghana", "Serbia", "Nigeria", "Germany", "Australia"),
+  Disciplines = c("Medical Biochemistry and Molecular Biology", "Biochemistry", "Biotechnology", "Bioinformatics", "Biotechnology"),
+  Preferred_programming_language = c("R", "Python", "Python", "Python", "Python")
+)
+
+# Print all team members' information
+print("Team members information:")
+print(personal_info)
+
+#To print out individual information
+#Change values from 1-5 to access different members based on positions in vectors
+print("Information for one team member:")
+print(paste("Name:", personal_info[["Names"]][1]))
+print(paste("Username:", personal_info[["Slack_usernames"]][1]))
+print(paste("Email:", personal_info[["Emails"]][1]))
+print(paste("Hobby:", personal_info[["Hobbies"]][1])) 
+print(paste("Country:", personal_info[["Countries"]][1]))
+print(paste("Discipline:", personal_info[["Disciplines"]][1]))
+print(paste("Preferred programming language:", personal_info[["Preferred_programming_language"]][1]))
