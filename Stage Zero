@@ -1,1 +1,13 @@
-
+#Organizing my personal information with a simple list function
+#The 'list()' function allows you to organize variables and values of different types
+my_info <- list(
+    Name = "Kelvin Senyo Tanson",
+    Slack_username = "Ktanson",
+    Email = "kelvins.tanson@gmail.com",
+    Hobby = "Graphic Design", 
+    Country = "Ghana",
+    Discipline = "Medical biochemistry and Molecular Biology",
+    Preferred_programming_language = "R"
+    )
+#The `print()` function is used to display the organized information in a readable format.
+print(my_info)
