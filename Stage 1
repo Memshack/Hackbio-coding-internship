@@ -1,0 +1,87 @@
+# I copied and pasted the codon map table before proceeding to write the function
+# Function to translate DNA to protein
+translate_dna <- function(dna_seq) {
+  codon_table <- list(
+    "ATA"="I", "ATC"="I", "ATT"="I", "ATG"="M",
+    "ACA"="T", "ACC"="T", "ACG"="T", "ACT"="T",
+    "AAC"="N", "AAT"="N", "AAA"="K", "AAG"="K",
+    "AGC"="S", "AGT"="S", "AGA"="R", "AGG"="R",
+    "CTA"="L", "CTC"="L", "CTG"="L", "CTT"="L",
+    "CCA"="P", "CCC"="P", "CCG"="P", "CCT"="P",
+    "CAC"="H", "CAT"="H", "CAA"="Q", "CAG"="Q",
+    "CGA"="R", "CGC"="R", "CGG"="R", "CGT"="R",
+    "GTA"="V", "GTC"="V", "GTG"="V", "GTT"="V",
+    "GCA"="A", "GCC"="A", "GCG"="A", "GCT"="A",
+    "GAC"="D", "GAT"="D", "GAA"="E", "GAG"="E",
+    "GGA"="G", "GGC"="G", "GGG"="G", "GGT"="G",
+    "TCA"="S", "TCC"="S", "TCG"="S", "TCT"="S",
+    "TTC"="F", "TTT"="F", "TTA"="L", "TTG"="L",
+    "TAC"="Y", "TAT"="Y", "TAA"="Stop", "TAG"="Stop",
+    "TGC"="C", "TGT"="C", "TGA"="Stop", "TGG"="W"
+  )
+  
+  protein <- ""
+  for (i in seq(1, nchar(dna_seq) - 2, by=3)) {
+    codon <- substr(dna_seq, i, i + 2)
+    aa <- codon_table[[codon]]
+    if (aa == "Stop") break
+    protein <- paste0(protein, aa)
+  }
+  return(protein)
+}
+
+# Function to simulate logistic growth
+# I used default parameters for the arguments of the function
+logistic_growth <- function(time, K=100, r=0.1, N0=1, lag_range=c(5, 10), exp_range=c(10, 20)) {
+  lag_phase <- sample(lag_range[1]:lag_range[2], 1)
+  exp_phase <- sample(exp_range[1]:exp_range[2], 1)
+  
+  N <- numeric(length(time))
+  for (t in 1:length(time)) {
+    if (t <= lag_phase) {
+      N[t] <- N0
+    } else if (t <= lag_phase + exp_phase) {
+      N[t] <- K / (1 + ((K - N0) / N0) * exp(-r * (t - lag_phase)))
+    } else {
+      N[t] <- K
+    }
+  }
+  return(data.frame(Time=time, Population=N))
+}
+
+
+# Generate 100 different growth curves
+growth_curves <- lapply(1:100, function(i) {
+  logistic_growth(1:50, K=sample(80:120, 1), r=runif(1, 0.1, 0.3), N0=sample(1:5, 1))
+})
+
+# Function to determine time to reach 80% of carrying capacity
+time_to_80 <- function(growth_data, K) {
+  threshold <- 0.8 * K
+  return(min(growth_data$Time[growth_data$Population >= threshold]))
+}
+
+#function for hamming distance
+hamming_distance <- function(str1, str2) {
+  len1 <- nchar(str1)
+  len2 <- nchar(str2)
+  
+  # First you need to make sure the hamming distance is equal to zero
+  distance <- 0
+  
+  # Find the minimum length to compare up to
+  min_len <- min(len1, len2)
+    # Each string is then compared to the minimum length
+  for (i in 1:min_len) {
+    if (substr(str1, i, i) != substr(str2, i, i)) {
+      distance <- distance + 1
+    }
+  }
+  # Add the difference in lengths to account for extra characters
+  distance <- distance + abs(len1 - len2)
+  return(distance)
+}
+
+# Hamming distance between slack username and X username
+hamming_distance("Ktanson", "TansonSMK")
+
