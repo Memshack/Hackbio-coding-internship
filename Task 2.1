@@ -1,0 +1,60 @@
+# Load necessary library
+library(tidyverse)
+
+# Load the dataset
+micro_data <- read.table("https://raw.githubusercontent.com/HackBio-Internship/2025_project_collection/refs/heads/main/Python/Dataset/mcgc.tsv", header = TRUE, sep = "\t")
+
+# Define WT and MUT groups
+WT_cols <- c("A1", "A3", "A5", "A7", "A9", "A11", "B1", "B3", "B5", "B7", "B9", "B11", "C1", "C3", "C5", "C7", "C9", "C11")
+MUT_cols <- c("A2", "A4", "A6", "A8", "A10", "A12", "B2", "B4", "B6", "B8", "B10", "B12", "C2", "C4", "C6", "C8", "C10", "C12")
+
+# Reshape data for ggplot
+data_long <- micro_data %>% 
+  pivot_longer(cols = -time, names_to = "Strain", values_to = "OD600") %>% 
+  mutate(Type = ifelse(Strain %in% WT_cols, "WT", "MUT"))
+
+ggplot(data_long, aes(x = time, y = OD600, color = Type, group = Strain)) +
+  geom_line() +
+  scale_color_manual(values = c("WT" = "blue", "MUT" = "red")) +
+  labs(title = "Growth Curves WT vs MUT", x = "Time", y = "OD600") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Function to find time to carrying capacity (90% of max OD)
+time_to_capacity <- function(data_col) {
+  K <- max(data_col)
+  threshold <- 0.9 * K
+  time_point <- min(micro_data$time[data_col >= threshold])
+  return(time_point)
+}
+
+# Determine times to carrying capacity for each WT and MUT strain
+WT_times <- sapply(WT_cols, function(col) time_to_capacity(micro_data[[col]]))
+MUT_times <- sapply(MUT_cols, function(col) time_to_capacity(micro_data[[col]]))
+
+print(head(WT_times, 5))
+print(head(MUT_times, 5))
+
+# Create a scatter plot of time to carrying capacity using ggplot
+scatter_data <- data.frame(
+  Time = c(WT_times, MUT_times),
+  Type = rep(c("WT", "MUT"), each = length(WT_times))
+)
+
+ggplot(scatter_data, aes(x = Type, y = Time, color = Type)) +
+  geom_jitter(width = 0.2, size = 3) +
+  scale_color_manual(values = c("WT" = "blue", "MUT" = "red")) +
+  labs(title = "Time to Carrying Capacity: WT vs MUT", x = "Strain Type", y = "Time to Carrying Capacity") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Create a boxplot comparing WT and MUT times using ggplot
+ggplot(scatter_data, aes(x = Type, y = Time, fill = Type)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("WT" = "blue", "MUT" = "red")) +
+  labs(title = "Boxplot of Time to Carrying Capacity", x = "Strain Type", y = "Time to Carrying Capacity") +
+  theme_minimal() + theme(legend.position = "none")
+
+# Perform a t-test to compare WT and MUT times
+t_test_result <- t.test(WT_times, MUT_times)
+print(t_test_result)
+
+#p-value is greater than 0.05 (p-value = 0.5984) hence there is no significant difference between WT and MUT strains in reaching carrying capacity
