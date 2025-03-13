@@ -1,0 +1,8 @@
+#Task 2.7 Public Health
+#Importing Liberaries and data
+library(tidyverse)
+cdc_data <- read.csv("https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/nhanes.csv", header = TRUE)
+#To view data
+glimpse(cdc_data)
+#Correct missing values
+cdc_data[is.na(cdc_data)] <- 0
