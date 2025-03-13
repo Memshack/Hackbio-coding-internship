@@ -1,0 +1,76 @@
+#Task 2.7 Public Health
+#Importing Liberaries and data
+library(tidyverse)
+cdc_data <- read.csv("https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/nhanes.csv", header = TRUE)
+#To view data
+glimpse(cdc_data)
+#Correct missing values
+cdc_data[is.na(cdc_data)] <- 0
+#Summarize data to acquire means and range
+summary(cdc_data)
+#to include weight in pounds (lbs)
+cdc_data <- cdc_data %>%
+  mutate(Weight_pounds = Weight * 2)
+#create individuals graphs for BMI, Weight and Weight in Pounds
+cdc_long <- cdc_data %>%
+  pivot_longer(cols = c(BMI, Weight, Weight_pounds, Age), 
+               names_to = "Variable", 
+               values_to = "Value")
+ggplot(cdc_long, aes(x = Value, fill = Variable)) +
+  geom_histogram(bins = 40, alpha = 0.7, color = "black") +
+  facet_wrap(~Variable, scales = "free") +  # Separate panels
+  theme_minimal() +
+  labs(title = "Histograms of BMI, Weight, Weight_pounds, and Age",
+       x = "Value",
+       y = "Frequency")
+#Income Statistics
+var(cdc_data$Income)
+sd(cdc_data$Income)
+#Relationship between Weight and Height colored by Gender
+ggplot(cdc_data, aes(x=Weight, y=Height, colour=Gender))+geom_point() +
+  theme_minimal()+
+  labs(title="Relationship between Weight and Height among gender groups",
+       x="Weight",
+       y="height",
+       color = "Gender")
+#Relationship between weight and height by Diabetes
+#Convert all 0 (Missing Values) to No Category in Diabetes category
+unique(cdc_data$Diabetes)
+cdc_data <- cdc_data %>%
+  mutate(Diabetes = case_when(
+    Diabetes == "0" ~ "No",  
+    TRUE ~ Diabetes           
+  ))
+cdc_data <- cdc_data %>%
+  mutate(Diabetes = factor(Diabetes, levels = c("No", "Yes")))
+
+ggplot(cdc_data, aes(x=Weight, y=Height, colour=Diabetes))+geom_point() +
+  theme_minimal()+
+  labs(title="Relationship between Weight and Height by Diabetes",
+       x="Weight",
+       y="height",
+       color = "Diabetes")
+#Relationship between weight and height by Smoking Status
+#Convert all 0 (Missing Values) to Never Category in smoking category
+unique(cdc_data$SmokingStatus)
+cdc_data <- cdc_data %>%
+  mutate(SmokingStatus = case_when(
+    SmokingStatus == "0" ~ "Never",  
+    TRUE ~ SmokingStatus           
+  ))
+cdc_data <- cdc_data %>%
+  mutate(SmokingStatus = factor(SmokingStatus, levels = c("Current", "Former", "Never")))
+
+ggplot(cdc_data, aes(x=Weight, y=Height, colour=SmokingStatus))+geom_point() +
+  theme_minimal()+
+  labs(title="Relationship between Weight and Height by Smoking Status",
+       x="Weight",
+       y="height",
+       color = "SmokingStatus")
+#Conduct T-test among Age and Gender, BMI and Diabetes, Alcohol Year and Relationship Status
+t_test_age_Gender <- t.test(Age~Gender, data = cdc_data)
+t_test_BMI_Diabetes <- t.test(BMI~Diabetes, data = cdc_data)
+t_test_Alcohol_Relationship <- t.test(AlcoholYear~RelationshipStatus)
+print(t_test_Alcohol_Relationship)
+print(t_test_BMI_Diabetes)
+print(t_test_age_Gender)
