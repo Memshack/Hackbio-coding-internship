@@ -1,0 +1,48 @@
+#loading packages
+library(tidyverse)
+# Read in the dataset as a text file
+RNA_Seq_data <- read.table("https://gist.githubusercontent.com/stephenturner/806e31fce55a8b7175af/raw/1a507c4c3f9f1baaa3a69187223ff3d3050628d4/results.txt", 
+                           header = TRUE, sep = "", stringsAsFactors = FALSE)
+#Volcano Plot
+RNA_Seq_data <- RNA_Seq_data %>%
+  mutate(Significance = ifelse(pvalue < 0.05 & abs(log2FoldChange) > 1, 
+                               ifelse(log2FoldChange > 1, "Upregulated", "Downregulated"), 
+                               "Not Significant"))
+
+ggplot(RNA_Seq_data, aes(x = log2FoldChange, y = -log10(pvalue), color = Significance)) +
+  geom_point(alpha = 0.8, size = 2) +
+  scale_color_manual(values = c("Upregulated" = "red", "Downregulated" = "blue", "Not Significant" = "gray")) +
+  theme_minimal() +
+  labs(title = "Volcano Plot", x = "Log2 Fold Change", y = "-Log10 P-value")
+
+#Identify Upregulated Genes (Log2FC > 1 and pvalue < 0.01)
+upregulated_genes <- RNA_Seq_data %>%
+  filter(log2FoldChange > 1 & pvalue < 0.01) %>%
+  arrange(pvalue)
+
+#top 5 upregulated genes
+head(upregulated_genes, 5)
+
+#Identify Downregulated Genes (Log2FC < -1 and pvalue < 0.01)
+downregulated_genes <- RNA_Seq_data %>%
+  filter(log2FoldChange < -1 & pvalue < 0.01) %>%
+  arrange(pvalue)
+
+#5 downregulated genes
+head(downregulated_genes, 5)
+
+print(head(downregulated_genes$Gene, 5))
+print(head(upregulated_genes$Gene, 5))
+
+#Function of upregulated and downregulated genes
+#TBX5 (T-Box Transcription Factor 5): TBX5 is a member of the T-box family of transcription factors,which play crucial roles in the regulation of developmental processes. Mutations in TBX5 are associated with Holt-Oram syndrome, a disorder characterized by skeletal abnormalities of the hands and arms (upper limbs) and heart problems.
+#LAMA2 (Laminin Subunit Alpha-2): LAMA2 encodes the alpha-2 chain of laminin, an essential component of the basement membrane in various tissues. Laminins are involved in cell adhesion, differentiation, migration, and signaling. Mutations in LAMA2 can lead to congenital muscular dystrophy due to defects in muscle fiber stability.
+#CAV2 (Caveolin 2): CAV2 encodes caveolin-2, a protein associated with caveolae—small invaginations in the plasma membrane involved in various cellular processes, including signal transduction and lipid metabolism. Caveolin-2 functions in conjunction with caveolin-1 and is implicated in modulating signaling pathways and maintaining cellular cholesterol balance.
+#IFITM1 (Interferon Induced Transmembrane Protein 1): IFITM1 is part of the interferon-induced transmembrane protein family, which plays a role in the immune response to viral infections. IFITM1 inhibits the early stages of viral replication by preventing the fusion of viral and cellular membranes, thereby restricting the entry of viruses into host cells. 
+#TNN (Tenascin N): TNN encodes tenascin-N, an extracellular matrix glycoprotein involved in tissue development and repair. It is predominantly expressed in the nervous system and has roles in neural development, including cell migration and axon guidance.
+
+#EMILIN2 (Elastin Microfibril Interfacer 2): EMILIN2 encodes a protein that is part of the elastin microfibril interfacer family, which is involved in the structural integrity and function of elastic fibers in the extracellular matrix. These fibers are crucial for the elasticity and resilience of various tissues, including skin, lungs, and blood vessels.
+#POU3F4 (POU Class 3 Homeobox 4): POU3F4 is a member of the POU-III class of neural transcription factors and plays a role in inner ear development. Mutations in this gene are associated with X-linked nonsyndromic deafness, specifically DFN3, characterized by hearing loss and temporal bone anomalies. 
+#LOC285954: LOC285954 refers to a long non-coding RNA (lncRNA) gene. The specific functions of this lncRNA are not well-characterized, and ongoing research aims to elucidate its potential roles in gene regulation and association with various diseases.
+#VEPH1 (Ventricular Zone Expressed PH Domain-Containing 1): VEPH1 encodes a protein containing a pleckstrin homology (PH) domain, which is implicated in intracellular signaling and cytoskeletal organization. While the precise function of VEPH1 remains under investigation, it is thought to play a role in neural development and has been linked to certain cancer pathways.
+#DTHD1 (Death Domain-Containing 1): DTHD1 encodes a protein containing a death domain, which is typically involved in apoptotic signaling pathways. Although the exact function of DTHD1 is not fully understood, proteins with death domains often participate in programmed cell death and immune responses.
