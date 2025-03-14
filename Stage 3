@@ -1,0 +1,107 @@
+# Load necessary libraries
+library(tidyverse)
+library(cluster)
+library(factoextra)
+library(caret)
+library(randomForest)
+
+# Load the dataset from the URL
+data_url <- "https://raw.githubusercontent.com/HackBio-Internship/2025_project_collection/refs/heads/main/Python/Dataset/drug_class_struct.txt"
+drugdata <- read.table(data_url, sep = "\t", header = TRUE)
+
+cat("Data shape:", dim(drugdata), "\n")
+print(head(drugdata))
+
+# Select numeric columns (features)
+numeric_columns <- names(drugdata)[sapply(drugdata, is.numeric)]
+cat("Numeric columns found:", numeric_columns, "\n")
+
+# Remove the 'score' column from features
+if ("score" %in% numeric_columns) {
+  feature_columns <- setdiff(numeric_columns, "score")
+} else {
+  feature_columns <- numeric_columns
+}
+
+# Separate features and target
+X <- drugdata[, feature_columns]
+y <- drugdata$score
+
+# Standardize the features
+X_scaled <- scale(X)
+
+# Perform PCA with 2 components
+pca <- prcomp(X_scaled, center = TRUE, scale. = TRUE)
+cat("Variance explained by each component:", summary(pca)$importance[2, 1:2], "\n")
+
+# Add PCA results to DataFrame
+drugdata$PC1 <- pca$x[, 1]
+drugdata$PC2 <- pca$x[, 2]
+
+# K-Means clustering with 5 clusters
+set.seed(42)
+kmeans_result <- kmeans(pca$x[, 1:2], centers = 5)
+drugdata$cluster <- as.factor(kmeans_result$cluster)
+
+# Visualize PCA result colored by docking score
+ggplot(drugdata, aes(x = PC1, y = PC2, color = score)) +
+  geom_point(alpha = 0.7) +
+  scale_color_viridis_c() +
+  labs(title = "PCA Plot Colored by Docking Score", x = "Principal Component 1", y = "Principal Component 2") +
+  theme_minimal()
+
+# Visualize PCA result with K-Means clusters
+ggplot(drugdata, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.7) +
+  labs(title = "PCA Plot with K-Means Clusters", x = "Principal Component 1", y = "Principal Component 2") +
+  theme_minimal()
+
+# Boxplot of docking scores per cluster
+ggplot(drugdata, aes(x = cluster, y = score, fill = cluster)) +
+  geom_boxplot() +
+  labs(title = "Docking Scores in Each Cluster", x = "Cluster", y = "Docking Score") +
+  theme_minimal()
+
+# statistics for docking scores by cluster
+cluster_stats <- drugdata %>%
+  group_by(cluster) %>%
+  summarise(
+    median = median(score),
+    mean = mean(score),
+    count = n()
+  )
+
+cat("Docking score statistics by cluster:\n")
+print(cluster_stats)
+
+
+# Regression model to predict docking score
+
+# Split data into training and test sets
+set.seed(42)
+train_index <- createDataPartition(y, p = 0.8, list = FALSE)
+X_train <- X_scaled[train_index, ]
+X_test <- X_scaled[-train_index, ]
+y_train <- y[train_index]
+y_test <- y[-train_index]
+
+# Random Forest model to predict docking score
+score_model <- randomForest(X_train, y_train, ntree = 100)
+
+# Make predictions
+score_predictions <- predict(score_model, X_test)
+
+# Evaluate performance
+score_mse <- mean((score_predictions - y_test)^2)
+score_rmse <- sqrt(score_mse)
+cat("Mean Squared Error:", score_mse, "\n")
+cat("Root Mean Squared Error:", score_rmse, "\n")
+
+# Plot actual vs predicted docking scores
+results_df <- data.frame(Actual = y_test, Predicted = score_predictions)
+ggplot(results_df, aes(x = Actual, y = Predicted)) +
+  geom_point(color = "blue", alpha = 0.7) +
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "Actual vs Predicted Docking Scores", x = "Actual Docking Score", y = "Predicted Docking Score") +
+  theme_minimal()
+
